@@ -12,8 +12,8 @@
   /** Un UID por intento de envío (evita duplicar filas si hay doble clic) */
   let envioUidActivo = null;
   let envioRegistroEnCurso = false;
+  /** Siempre día actual — registro diario, no se adelanta ni atrasa */
   let fechaCosecha = '';
-  let fechaPicker = null;
   let horaCallback = null;
   let borradorTimer = null;
   let restaurandoBorrador = false;
@@ -44,17 +44,25 @@
     return new Date();
   }
 
-  function obtenerFechaCosecha() {
-    if (!fechaCosecha) fechaCosecha = formatFechaCosecha(new Date());
-    return fechaCosecha;
+  function fechaHoy() {
+    return formatFechaCosecha(new Date());
   }
 
-  function setFechaCosecha(val) {
-    fechaCosecha = val ? String(val).trim() : formatFechaCosecha(new Date());
+  /** Siempre la fecha del día (no editable, no se restaura del borrador) */
+  function obtenerFechaCosecha() {
+    return fechaHoy();
+  }
+
+  function sincronizarFechaHoyVisual() {
+    fechaCosecha = fechaHoy();
     const inp = $('#fecha-cosecha');
-    if (inp && inp.value !== fechaCosecha) inp.value = fechaCosecha;
-    if (fechaPicker) fechaPicker.setDate(parseFechaCosecha(fechaCosecha), false);
+    if (inp) inp.value = fechaCosecha;
+    actualizarFechaFab();
     actualizarHeaderContext();
+  }
+
+  function setFechaCosecha() {
+    sincronizarFechaHoyVisual();
   }
 
   /** Mensaje tooltip según avance del mes de la fecha de cosecha */
@@ -182,7 +190,6 @@
 
   function borradorTieneDatos(data) {
     if (!data) return false;
-    if (data.fechaCosecha && String(data.fechaCosecha).trim()) return true;
     if (data.tAmbiente || data.tPulpa) return true;
     if (!data.variedades || !data.variedades.length) return false;
     return data.variedades.some((v) => {
@@ -206,8 +213,7 @@
     if (!data) return;
     restaurandoBorrador = true;
     if (data.sessionId) sessionId = data.sessionId;
-    if (data.fechaCosecha != null) setFechaCosecha(data.fechaCosecha);
-    else setFechaCosecha(formatFechaCosecha(new Date()));
+    sincronizarFechaHoyVisual();
     if (data.tAmbiente != null) $('#t-ambiente').value = data.tAmbiente;
     if (data.tPulpa != null) $('#t-pulpa').value = data.tPulpa;
     if (data.variedades && data.variedades.length) {
@@ -1134,7 +1140,7 @@
   /** @param {boolean} eliminarBorrador - true solo tras envío exitoso */
   function limpiarFormulario(eliminarBorrador) {
     const borrar = eliminarBorrador !== false;
-    setFechaCosecha(formatFechaCosecha(new Date()));
+    sincronizarFechaHoyVisual();
     $('#t-ambiente').value = '';
     $('#t-pulpa').value = '';
     variedades = [crearVariedadVacia(true)];
@@ -1147,35 +1153,11 @@
   }
 
   function initFechaCosecha() {
-    setFechaCosecha(formatFechaCosecha(new Date()));
-    const inp = $('#fecha-cosecha');
-    const ring = $('#fecha-ring-widget');
-    if (!inp || !window.flatpickr) return;
-
-    if (window.flatpickr.l10ns && window.flatpickr.l10ns.es) {
-      flatpickr.localize(window.flatpickr.l10ns.es);
-    }
-
-    fechaPicker = flatpickr(inp, {
-      locale: 'es',
-      dateFormat: 'd-m-y',
-      defaultDate: parseFechaCosecha(obtenerFechaCosecha()),
-      allowInput: false,
-      clickOpens: false,
-      onChange: (_dates, str) => {
-        setFechaCosecha(str);
-        programarAutoguardadoBorrador();
-      },
+    sincronizarFechaHoyVisual();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') sincronizarFechaHoyVisual();
     });
-
-    const abrirPicker = () => fechaPicker?.open();
-    ring?.addEventListener('click', abrirPicker);
-    ring?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        abrirPicker();
-      }
-    });
+    setInterval(sincronizarFechaHoyVisual, 60000);
   }
 
   function enlazarAutoguardadoFormulario() {

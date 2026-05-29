@@ -1,7 +1,7 @@
 /**
  * Muestras Web — Service Worker
  */
-const CACHE_NAME = 'muestras-web-v78-loader-aviso';
+const CACHE_NAME = 'muestras-web-v79-fecha-hoy';
 const ASSETS = [
   './',
   './index.html',

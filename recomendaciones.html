@@ -78,11 +78,6 @@
             </div>
           </li>
         </ul>
-
-        <button type="button" class="btn btn-outline btn-block" id="btn-config-url">
-          <i data-lucide="link"></i>
-          Configurar URL del servidor
-        </button>
       </div>
     </section>
   </main>
@@ -115,22 +110,6 @@
         const el = document.getElementById('pendientes-count');
         if (el) el.textContent = pad2(N.colaOffline.contar());
       }
-
-      document.getElementById('btn-config-url').addEventListener('click', async function () {
-        const { value } = await Swal.fire({
-          title: 'URL del servidor',
-          text: 'Pega la URL de despliegue de Apps Script (termina en /exec)',
-          input: 'url',
-          inputValue: C.getApiUrl(),
-          showCancelButton: true,
-          confirmButtonText: 'Guardar',
-          cancelButtonText: 'Cancelar'
-        });
-        if (value) {
-          C.setApiUrl(value);
-          Swal.fire({ icon: 'success', title: 'Guardado', timer: 1400, showConfirmButton: false });
-        }
-      });
 
       window.addEventListener('online', actualizarEstado);
       window.addEventListener('offline', actualizarEstado);

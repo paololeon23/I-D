@@ -1706,10 +1706,8 @@ body[data-page="recomendaciones"] {
   flex-shrink: 0;
 }
 
-.fecha-ring-wrap:hover .fecha-ring-widget,
-.fecha-ring-wrap:focus-within .fecha-ring-widget {
-  transform: scale(1.08);
-  box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.28);
+.fecha-ring-wrap:hover .fecha-ring-widget {
+  box-shadow: 0 6px 18px rgba(var(--primary-rgb), 0.15);
 }
 
 .fecha-ring-wrap:hover .fecha-ring-tooltip,
@@ -1755,10 +1753,10 @@ body[data-page="recomendaciones"] {
 }
 
 .fecha-ring-widget--section {
-  cursor: pointer;
+  cursor: default;
   width: 52px;
   height: 52px;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+  transition: box-shadow 0.25s ease;
 }
 
 .fecha-ring-widget--section .fecha-ring-day {
@@ -1770,7 +1768,7 @@ body[data-page="recomendaciones"] {
 }
 
 .fecha-ring-widget--fab {
-  cursor: pointer;
+  cursor: default;
 }
 
 .fecha-ring-widget {
