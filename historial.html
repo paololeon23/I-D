@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#164c7c" />
+  <title>AGROVISION : I+D — Historial</title>
+  <link rel="icon" href="icono.png" type="image/png" sizes="any" />
+  <link rel="shortcut icon" href="icono.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icono.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="librerias/sweetalert2.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="historial">
+  <header class="app-header">
+    <div class="header-top">
+      <div class="header-title">
+        <h1>Historial</h1>
+        <span class="registro-pill">Cosecha I+D</span>
+      </div>
+    </div>
+    <div class="status-strip">
+      <span class="status-strip-item">
+        <span class="status-dot" id="hist-online-dot"></span>
+        <span id="hist-estado-linea">En línea</span>
+      </span>
+      <span class="status-strip-item">
+        Pendientes: <strong id="pendientes-count">00</strong>
+      </span>
+    </div>
+  </header>
+
+  <main class="app-main main-sheet">
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-header-text">
+          <h2>Registros enviados</h2>
+          <p id="historial-subtitulo">Consulta al servidor los últimos envíos</p>
+        </div>
+        <button type="button" class="section-icon-btn" id="btn-refrescar" aria-label="Actualizar lista">
+          <i data-lucide="refresh-cw"></i>
+        </button>
+      </div>
+      <div class="section-body section-body--flush">
+        <ul class="historial-list" id="historial-list">
+          <li class="empty-state">
+            <i data-lucide="refresh-cw" class="empty-state-icon empty-state-icon--spin" aria-hidden="true"></i>
+            <p>Cargando registros…</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer app-footer--nav-only">
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <a href="index.html" class="nav-item"><i data-lucide="home"></i><span>Inicio</span></a>
+      <a href="historial.html" class="nav-item active"><i data-lucide="clock"></i><span>Historial</span></a>
+      <a href="recomendaciones.html" class="nav-item"><i data-lucide="lightbulb"></i><span>Recomend.</span></a>
+    </nav>
+  </footer>
+
+  <script src="librerias/lucide.min.js"></script>
+  <script src="librerias/sweetalert2.all.min.js"></script>
+  <script src="script.js"></script>
+  <script src="network.js"></script>
+  <script>
+    (function () {
+      const C = window.MuestrasConfig;
+      const N = window.MuestrasNetwork;
+
+      function pad2(n) { return String(n).padStart(2, '0'); }
+
+      function escapeHtml(s) {
+        if (!s) return '';
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function fmtFecha(iso) {
+        if (!iso) return '—';
+        try {
+          return new Date(iso).toLocaleString('es-CL', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          });
+        } catch (e) {
+          return String(iso);
+        }
+      }
+
+      function actualizarPendientes() {
+        const el = document.getElementById('pendientes-count');
+        if (el) el.textContent = pad2(N.colaOffline.contar());
+      }
+
+      function actualizarEstadoRed() {
+        const online = navigator.onLine;
+        const dot = document.getElementById('hist-online-dot');
+        const txt = document.getElementById('hist-estado-linea');
+        if (dot) dot.classList.toggle('offline', !online);
+        if (txt) txt.textContent = online ? 'En línea' : 'Sin conexión';
+      }
+
+      function renderEmpty(icon, titulo, texto, link) {
+        const list = document.getElementById('historial-list');
+        const linkHtml = link
+          ? '<a href="' + link.href + '" class="empty-state-link">' + escapeHtml(link.label) + '</a>'
+          : '';
+        list.innerHTML =
+          '<li class="empty-state">' +
+          '<i data-lucide="' + icon + '" class="empty-state-icon" aria-hidden="true"></i>' +
+          '<p class="empty-state-title">' + escapeHtml(titulo) + '</p>' +
+          '<p class="empty-state-text">' + texto + '</p>' +
+          linkHtml +
+          '</li>';
+        if (window.lucide) lucide.createIcons();
+      }
+
+      function renderRegistros(items) {
+        const list = document.getElementById('historial-list');
+        const sub = document.getElementById('historial-subtitulo');
+        if (sub) {
+          sub.textContent = items.length + ' registro' + (items.length !== 1 ? 's' : '') + ' desde el servidor';
+        }
+        list.innerHTML = items.map(function (r) {
+          const titulo = (r.variedad || 'Sin variedad') + (r.genetica ? ' · ' + r.genetica : '');
+          const meta = [
+            r.num_muestra ? 'Muestra ' + r.num_muestra : null,
+            r.peso_muestra != null && r.peso_muestra !== '' ? 'Peso ' + r.peso_muestra + ' g' : null,
+            r.brix != null && r.brix !== '' ? '°Brix ' + r.brix : null,
+            r.acidez != null && r.acidez !== '' ? 'Acidez ' + r.acidez : null
+          ].filter(Boolean).join(' · ');
+
+          return '<li class="historial-item">' +
+            '<div class="historial-item-head">' +
+            '<h3>' + escapeHtml(titulo) + '</h3>' +
+            (r.fecha_cosecha ? '<span class="historial-chip">' + escapeHtml(r.fecha_cosecha) + '</span>' : '') +
+            '</div>' +
+            (meta ? '<p class="meta">' + escapeHtml(meta) + '</p>' : '') +
+            '<p class="meta historial-item-fecha">Enviado: ' + escapeHtml(fmtFecha(r.fecha_registro)) + '</p>' +
+            (r.observaciones ? '<p class="meta historial-item-obs">' + escapeHtml(r.observaciones) + '</p>' : '') +
+            '</li>';
+        }).join('');
+      }
+
+      async function cargarHistorial() {
+        const btn = document.getElementById('btn-refrescar');
+        const sub = document.getElementById('historial-subtitulo');
+        actualizarEstadoRed();
+
+        if (!navigator.onLine) {
+          if (sub) sub.textContent = 'Sin conexión — no se puede consultar el servidor';
+          renderEmpty(
+            'wifi-off',
+            'Sin internet',
+            'Conéctate a la red para ver los registros ya subidos. Tus borradores y pendientes siguen en el teléfono.',
+            { href: 'recomendaciones.html', label: 'Ver recomendaciones' }
+          );
+          return;
+        }
+
+        if (!C.getApiUrl()) {
+          if (sub) sub.textContent = 'Falta conectar la app al servidor';
+          renderEmpty(
+            'link-2',
+            'Servidor no configurado',
+            'Pide la URL de Apps Script a tu supervisor y configúrala en <strong>Recomendaciones</strong>.',
+            { href: 'recomendaciones.html', label: 'Ir a Recomendaciones' }
+          );
+          return;
+        }
+
+        if (btn) btn.disabled = true;
+        if (sub) sub.textContent = 'Consultando servidor…';
+        renderEmpty('refresh-cw', 'Cargando…', 'Obteniendo registros del servidor', null);
+        const spin = document.querySelector('.empty-state-icon--spin');
+        if (spin) spin.classList.add('empty-state-icon--spin');
+
+        try {
+          const res = await N.listarHistorial('', 80);
+          const items = (res && res.registros) || [];
+
+          if (!items.length) {
+            if (sub) sub.textContent = 'Aún no hay registros en el servidor';
+            renderEmpty(
+              'inbox',
+              'Sin registros',
+              'Cuando envíes un formulario desde <strong>Inicio</strong>, aparecerá aquí.',
+              { href: 'index.html', label: 'Ir a Inicio' }
+            );
+            return;
+          }
+
+          renderRegistros(items);
+        } catch (e) {
+          if (sub) sub.textContent = 'No se pudo cargar el historial';
+          renderEmpty(
+            'cloud-off',
+            'Error al consultar',
+            escapeHtml(e.message || 'El servidor no respondió. Intenta de nuevo en unos minutos.'),
+            { href: 'recomendaciones.html', label: 'Ver qué hacer' }
+          );
+        } finally {
+          if (btn) btn.disabled = false;
+          if (window.lucide) lucide.createIcons();
+        }
+      }
+
+      document.getElementById('btn-refrescar').addEventListener('click', cargarHistorial);
+      window.addEventListener('online', function () {
+        actualizarEstadoRed();
+        N.procesarColaPendientes();
+        cargarHistorial();
+      });
+      window.addEventListener('offline', actualizarEstadoRed);
+
+      if (window.lucide) lucide.createIcons();
+      actualizarPendientes();
+      actualizarEstadoRed();
+      cargarHistorial();
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(function () {});
+    })();
+  </script>
+</body>
+</html>

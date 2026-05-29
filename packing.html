@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#164c7c" />
+  <title>AGROVISION : I+D — Packing</title>
+  <link rel="icon" href="icono.png" type="image/png" sizes="any" />
+  <link rel="shortcut icon" href="icono.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icono.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="librerias/sweetalert2.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="packing">
+  <header class="app-header">
+    <div class="header-top">
+      <div class="header-title">
+        <h1>Registro:</h1>
+        <span class="registro-pill">Packing</span>
+      </div>
+      <div class="header-status">
+        <div class="status-box">
+          <strong>PENDIENTES: <span id="pendientes-count">00</span></strong>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section class="section-card">
+      <div class="section-header">
+        <div>
+          <h2>Packing / columnas extendidas</h2>
+          <p>Columnas 47+ (thermoking, C5) — mismo pipeline POST + JSONP</p>
+        </div>
+      </div>
+      <div class="section-body config-panel">
+        <p style="color:var(--text-muted);font-size:0.9rem">
+          Módulo de packing en desarrollo. Los envíos usan <code>registrar_packing</code> en Apps Script
+          para escribir campos extendidos sobre un UID existente.
+        </p>
+        <a href="index.html" class="btn btn-primary" style="margin-top:16px;text-decoration:none">Ir a registro de cosecha</a>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item"><i data-lucide="home"></i><span>Campo</span></a>
+    <a href="packing.html" class="nav-item active"><i data-lucide="scan"></i><span>Packing</span></a>
+    <a href="historial.html" class="nav-item"><i data-lucide="clock"></i><span>Historial</span></a>
+    <a href="recomendaciones.html" class="nav-item"><i data-lucide="settings"></i><span>Recomend.</span></a>
+  </nav>
+
+  <script src="librerias/lucide.min.js"></script>
+  <script src="script.js"></script>
+  <script src="network.js"></script>
+  <script>
+    if (window.lucide) lucide.createIcons();
+    var el = document.getElementById('pendientes-count');
+    if (el && window.MuestrasNetwork) el.textContent = String(window.MuestrasNetwork.colaOffline.contar()).padStart(2, '0');
+  </script>
+</body>
+</html>

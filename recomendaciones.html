@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#164c7c" />
+  <title>AGROVISION : I+D — Recomendaciones</title>
+  <link rel="icon" href="icono.png" type="image/png" sizes="any" />
+  <link rel="shortcut icon" href="icono.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icono.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="librerias/sweetalert2.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="recomendaciones">
+  <header class="app-header">
+    <div class="header-top">
+      <div class="header-title">
+        <h1>Recomendaciones</h1>
+        <span class="registro-pill">Ayuda en campo</span>
+      </div>
+    </div>
+    <div class="status-strip">
+      <span class="status-strip-item">
+        <span class="status-dot" id="recom-online-dot"></span>
+        <span id="recom-estado-linea">En línea</span>
+      </span>
+      <span class="status-strip-item">
+        Pendientes: <strong id="pendientes-count">00</strong>
+      </span>
+    </div>
+  </header>
+
+  <main class="app-main main-sheet">
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-header-text">
+          <h2>Si algo falla</h2>
+          <p>Qué hacer sin internet, con error de envío o registros pendientes</p>
+        </div>
+        <div class="section-icon" aria-hidden="true"><i data-lucide="lightbulb"></i></div>
+      </div>
+      <div class="section-body">
+        <ul class="recom-list">
+          <li class="recom-item">
+            <span class="recom-item-icon" aria-hidden="true"><i data-lucide="wifi-off"></i></span>
+            <div class="recom-item-text">
+              <strong>Sin internet</strong>
+              <p>Sigue registrando con normalidad. El borrador se guarda solo en el teléfono y los envíos quedan en cola hasta que vuelva la señal.</p>
+            </div>
+          </li>
+          <li class="recom-item">
+            <span class="recom-item-icon" aria-hidden="true"><i data-lucide="cloud-off"></i></span>
+            <div class="recom-item-text">
+              <strong>Error al enviar</strong>
+              <p>No borres el formulario. Revisa que haya internet, espera un momento y pulsa <em>Enviar registro</em> otra vez. Si persiste, avisa a tu supervisor.</p>
+            </div>
+          </li>
+          <li class="recom-item">
+            <span class="recom-item-icon" aria-hidden="true"><i data-lucide="inbox"></i></span>
+            <div class="recom-item-text">
+              <strong>Pendientes en cola</strong>
+              <p>El contador <em>Pendientes</em> del header muestra cuántos registros faltan por subir. Se envían solos al recuperar conexión.</p>
+            </div>
+          </li>
+          <li class="recom-item">
+            <span class="recom-item-icon" aria-hidden="true"><i data-lucide="save"></i></span>
+            <div class="recom-item-text">
+              <strong>Borrador local</strong>
+              <p>Lo que escribes se guarda automáticamente. Puedes cerrar la app y continuar después desde <strong>Inicio</strong>.</p>
+            </div>
+          </li>
+          <li class="recom-item">
+            <span class="recom-item-icon" aria-hidden="true"><i data-lucide="clock"></i></span>
+            <div class="recom-item-text">
+              <strong>Confirmar envío</strong>
+              <p>Tras enviar, revisa en <a href="historial.html">Historial</a> que el registro aparezca en el servidor.</p>
+            </div>
+          </li>
+        </ul>
+
+        <button type="button" class="btn btn-outline btn-block" id="btn-config-url">
+          <i data-lucide="link"></i>
+          Configurar URL del servidor
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer app-footer--nav-only">
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <a href="index.html" class="nav-item"><i data-lucide="home"></i><span>Inicio</span></a>
+      <a href="historial.html" class="nav-item"><i data-lucide="clock"></i><span>Historial</span></a>
+      <a href="recomendaciones.html" class="nav-item active"><i data-lucide="lightbulb"></i><span>Recomend.</span></a>
+    </nav>
+  </footer>
+
+  <script src="librerias/lucide.min.js"></script>
+  <script src="librerias/sweetalert2.all.min.js"></script>
+  <script src="script.js"></script>
+  <script src="network.js"></script>
+  <script>
+    (function () {
+      const C = window.MuestrasConfig;
+      const N = window.MuestrasNetwork;
+
+      function pad2(n) { return String(n).padStart(2, '0'); }
+
+      function actualizarEstado() {
+        const online = navigator.onLine;
+        const dot = document.getElementById('recom-online-dot');
+        const txt = document.getElementById('recom-estado-linea');
+        if (dot) dot.classList.toggle('offline', !online);
+        if (txt) txt.textContent = online ? 'En línea' : 'Sin conexión';
+        const el = document.getElementById('pendientes-count');
+        if (el) el.textContent = pad2(N.colaOffline.contar());
+      }
+
+      document.getElementById('btn-config-url').addEventListener('click', async function () {
+        const { value } = await Swal.fire({
+          title: 'URL del servidor',
+          text: 'Pega la URL de despliegue de Apps Script (termina en /exec)',
+          input: 'url',
+          inputValue: C.getApiUrl(),
+          showCancelButton: true,
+          confirmButtonText: 'Guardar',
+          cancelButtonText: 'Cancelar'
+        });
+        if (value) {
+          C.setApiUrl(value);
+          Swal.fire({ icon: 'success', title: 'Guardado', timer: 1400, showConfirmButton: false });
+        }
+      });
+
+      window.addEventListener('online', actualizarEstado);
+      window.addEventListener('offline', actualizarEstado);
+
+      if (window.lucide) lucide.createIcons();
+      actualizarEstado();
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(function () {});
+    })();
+  </script>
+</body>
+</html>

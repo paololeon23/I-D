@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#164c7c" />
+  <meta name="description" content="Evaluaciones de Seguimiento de Cosecha — Arándano I+D" />
+  <title>AGROVISION : I+D</title>
+  <link rel="icon" href="icono.png" type="image/png" sizes="any" />
+  <link rel="shortcut icon" href="icono.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icono.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="librerias/sweetalert2.min.css" />
+  <link rel="stylesheet" href="librerias/flatpickr.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="campo">
+  <header class="app-header">
+    <div class="header-top">
+      <div class="header-title">
+        <h1>Registro:</h1>
+        <span class="registro-pill" id="tipo-registro-label">Cosecha I+D</span>
+      </div>
+      <div class="header-actions">
+        <div class="wifi-icon" id="wifi-indicator" role="status" aria-label="Estado de conexión">
+          <i data-lucide="wifi"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-strip">
+      <span class="status-strip-item">
+        <span class="status-dot" id="online-dot"></span>
+        <span id="estado-linea">En línea</span>
+      </span>
+      <span class="status-strip-item">
+        Pendientes: <strong id="pendientes-count">00</strong>
+      </span>
+    </div>
+
+    <div class="context-accordion" id="context-accordion">
+      <button
+        type="button"
+        class="context-accordion-trigger"
+        id="context-accordion-trigger"
+        aria-expanded="false"
+        aria-controls="context-accordion-panel"
+      >
+        <span class="context-accordion-trigger-text">
+          <span class="context-accordion-title">Registro de calidad</span>
+          <p class="header-context-label">Evaluaciones de Seguimiento de Cosecha · Arándano I+D</p>
+          <span class="context-accordion-preview" id="header-context-preview">Sin datos · 0 var.</span>
+        </span>
+        <span class="context-accordion-chevron" aria-hidden="true">
+          <i data-lucide="chevron-down"></i>
+        </span>
+      </button>
+      <div class="context-accordion-panel" id="context-accordion-panel">
+        <div class="context-accordion-inner">
+          <div class="context-stats" role="list">
+            <div class="context-stat" role="listitem">
+              <span class="context-stat-label">T° ambiente</span>
+              <strong class="context-stat-value" id="pill-t-ambiente">—</strong>
+            </div>
+            <div class="context-stat" role="listitem">
+              <span class="context-stat-label">T° pulpa</span>
+              <strong class="context-stat-value" id="pill-t-pulpa">—</strong>
+            </div>
+            <div class="context-stat" role="listitem">
+              <span class="context-stat-label">Variedades</span>
+              <strong class="context-stat-value" id="pill-variedades">0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main main-sheet">
+    <section class="section-card" id="seccion-sesion">
+      <div class="section-header">
+        <div class="section-header-text">
+          <h2>Encabezado del registro</h2>
+          <p>IN-ID-FO-001 — campos fijos del formulario</p>
+        </div>
+        <div class="fecha-ring-wrap" id="fecha-ring-wrap">
+          <div class="fecha-ring-widget fecha-ring-widget--section" id="fecha-ring-widget" aria-label="Fecha de cosecha" aria-describedby="fecha-ring-tooltip" role="button" tabindex="0">
+            <div class="fecha-ring-content">
+              <span class="fecha-ring-day" id="fecha-ring-day">—</span>
+              <span class="fecha-ring-month" id="fecha-ring-month">—</span>
+            </div>
+          </div>
+          <div class="fecha-ring-tooltip" id="fecha-ring-tooltip" role="tooltip">Fecha de cosecha</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <input type="text" id="fecha-cosecha" class="fecha-cosecha-hidden" aria-hidden="true" tabindex="-1" />
+        <div class="field-grid">
+          <div class="field">
+            <label for="t-ambiente">T° ambiente</label>
+            <input type="number" id="t-ambiente" inputmode="decimal" step="0.1" placeholder="20.8" />
+          </div>
+          <div class="field">
+            <label for="t-pulpa">T° pulpa</label>
+            <input type="number" id="t-pulpa" inputmode="decimal" step="0.1" placeholder="20.5" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-header section-header--minimal">
+        <div class="section-header-text">
+          <h2>Tabla de muestras</h2>
+          <p class="section-subline">Variedad y genética una vez · fila por fila (peso, defectos, °Brix, acidez)</p>
+        </div>
+        <button type="button" class="btn-icon-soft" id="btn-agregar-variedad" aria-label="Agregar variedad">
+          <i data-lucide="plus"></i>
+        </button>
+      </div>
+      <div class="section-body">
+        <div id="variedades-container" class="variedades-list"></div>
+      </div>
+    </section>
+
+    <div class="pasos-nube" id="pasos-nube" role="note" aria-label="Pasos para registrar">
+      <p class="pasos-nube-titulo">Pasos rápidos</p>
+      <ol class="pasos-nube-lista">
+        <li>Completa <strong>fecha</strong> y <strong>temperaturas</strong> arriba.</li>
+        <li>Abre el bloque y elige <strong>variedad</strong> y <strong>genética</strong>.</li>
+        <li>Llena cada fila: peso, PP baya, N° bayas y °Brix.</li>
+        <li>Toca los íconos para <strong>defectos</strong> y <strong>observaciones</strong>.</li>
+        <li>Pulsa <strong>+</strong> arriba si necesitas otra variedad.</li>
+        <li>Al terminar, usa <strong>Enviar registro</strong>.</li>
+      </ol>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="bottom-dock">
+      <button type="button" class="btn btn-primary btn-dock" id="btn-enviar">
+        <i data-lucide="upload"></i>
+        Enviar registro
+      </button>
+    </div>
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <a href="index.html" class="nav-item active" data-nav="inicio">
+        <i data-lucide="home"></i>
+        <span>Inicio</span>
+      </a>
+      <a href="historial.html" class="nav-item" data-nav="historial">
+        <i data-lucide="clock"></i>
+        <span>Historial</span>
+      </a>
+      <a href="recomendaciones.html" class="nav-item" data-nav="recomendaciones">
+        <i data-lucide="lightbulb"></i>
+        <span>Recomend.</span>
+      </a>
+    </nav>
+  </footer>
+
+  <div class="modal-overlay" id="modal-hora" role="dialog" aria-modal="true" aria-labelledby="modal-hora-title">
+    <div class="modal-sheet">
+      <h3 id="modal-hora-title">Seleccionar hora</h3>
+      <div class="time-picker-row">
+        <select id="picker-hora" aria-label="Hora"></select>
+        <span>:</span>
+        <select id="picker-min" aria-label="Minutos"></select>
+      </div>
+      <button type="button" class="btn btn-primary" id="btn-hora-ok">Aceptar</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-defectos" role="dialog" aria-modal="true" aria-labelledby="modal-defectos-title">
+    <div class="modal-sheet modal-sheet--form">
+      <div class="modal-sheet-header">
+        <h3 id="modal-defectos-title">Defectos — Fila <span id="modal-defectos-fila">1</span></h3>
+        <button type="button" class="modal-close" id="modal-defectos-cerrar" aria-label="Cerrar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-sheet-body" id="modal-defectos-body"></div>
+      <button type="button" class="btn btn-primary btn-modal-save" id="modal-defectos-ok">Guardar defectos</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-observaciones" role="dialog" aria-modal="true" aria-labelledby="modal-obs-title">
+    <div class="modal-sheet modal-sheet--form">
+      <div class="modal-sheet-header">
+        <h3 id="modal-obs-title">Observaciones — Fila <span id="modal-obs-fila">1</span></h3>
+        <button type="button" class="modal-close" id="modal-obs-cerrar" aria-label="Cerrar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-sheet-body">
+        <div class="field">
+          <label for="modal-obs-input">Observaciones</label>
+          <textarea id="modal-obs-input" rows="4" placeholder="Escriba observaciones de esta fila…"></textarea>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary btn-modal-save" id="modal-obs-ok">Guardar observaciones</button>
+    </div>
+  </div>
+
+  <div id="loader-envio" class="loader-envio" hidden aria-live="polite" aria-busy="true" aria-label="Guardando registro">
+    <div class="loader-envio-backdrop"></div>
+    <div class="loader-envio-card" role="status">
+      <div class="loader-envio-spinner" aria-hidden="true"></div>
+      <p class="loader-envio-title" id="loader-envio-title">Guardando registro</p>
+      <p class="loader-envio-sub" id="loader-envio-sub">Conectando con la planilla…</p>
+      <p class="loader-envio-hint" id="loader-envio-hint">Espere un momento. No cierre ni recargue la página.</p>
+    </div>
+  </div>
+
+  <script src="librerias/lucide.min.js"></script>
+  <script src="librerias/sweetalert2.all.min.js"></script>
+  <script src="librerias/flatpickr.min.js"></script>
+  <script src="librerias/flatpickr-l10n-es.js"></script>
+  <script src="script.js"></script>
+  <script src="network.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(function () {});
+    }
+  </script>
+</body>
+</html>
